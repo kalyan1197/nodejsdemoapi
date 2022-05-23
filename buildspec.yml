@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+     nodejs: 14
+  pre_build:
+    commands:
+      - echo install dependencies
+      - npm install
+      - aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin 601845944721.dkr.ecr.ca.central-1.amazonaws.com
+      
+  build:
+    commands:
+      - echo build docker image and tag it
+      - docker build -t nodejsdemo:latest .
+      - docker tag nodejsdemo:latest 601845944721.dkr.ecr.ca-central-1.amazonaws.com/nodejsdemo:latest
+  post_build:
+    commands:
+      - echo push the image to ECR
+      - docker push 601845944721.dkr.ecr.ca-central-1.amazonaws.com/nodejsdemo:latest
+      - printf '[{"name":"%s","imageUrl":"%s"}]' nodejsdemo 601845944721.dkr.ecr.ca-central-1.amazonaws.com/nodejsdemo:latest > imagedefinitions.json 
+artifacts:
+ files:
+    - imagedefinitions.json
